@@ -1,301 +1,340 @@
 <!DOCTYPE html>
-<html lang="vi" class="scroll-smooth">
+<html lang="vi" class="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>An Ninh Mạng Khánh Hòa | Trung Tâm Giám Sát & Bảo Mật Không Gian Mạng</title>
-    <meta name="description" content="Giải pháp an toàn thông tin, thẩm định cấp độ bảo mật, điều tra số và phòng chống tội phạm công nghệ cao tại Khánh Hòa.">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'monospace'],
-                    },
-                    colors: {
-                        cyber: {
-                            dark: '#050811',
-                            card: '#0B1120',
-                            cyan: '#06B6D4',
-                            blue: '#2563EB',
-                            emerald: '#10B981'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        body {
-            background-color: #050811;
-            color: #F8FAFC;
-        }
-        .bg-grid {
-            background-size: 40px 40px;
-            background-image: 
-                linear-gradient(to right, rgba(6, 182, 212, 0.05) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(6, 182, 212, 0.05) 1px, transparent 1px);
-        }
-        .glow-cyan {
-            box-shadow: 0 0 25px -5px rgba(6, 182, 212, 0.3);
-        }
-    </style>
-</head>
-<body class="bg-grid antialiased selection:bg-cyan-500 selection:text-black">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bản Đồ Số Quản Lý An Toàn Hệ Thống Thông Tin | Tỉnh Khánh Hòa (65 ĐVHC - NĐ 331/2026/NĐ-CP)</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Leaflet GIS Map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google Fonts: JetBrains Mono & Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Thanh trạng thái hệ thống -->
-    <div class="bg-slate-950/90 border-b border-slate-800/80 py-1.5 px-4 text-xs font-mono">
-        <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-2">
-            <div class="flex items-center space-x-2">
-                <span class="relative flex h-2 w-2">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                </span>
-                <span class="text-emerald-400">SOC STATUS: ONLINE</span>
-                <span class="text-slate-600">|</span>
-                <span class="text-slate-400">THREAT LEVEL: <strong class="text-cyan-400">LOW</strong></span>
-            </div>
-            <div class="text-slate-400 hidden sm:block">
-                LOC: KHANH HOA, VN // PROTOCOL: TLS 1.3 ENFORCED
-            </div>
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #050914; color: #e2e8f0; overflow: hidden; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+    #map { height: calc(100vh - 64px); width: 100%; z-index: 1; background: #060b16; }
+    
+    .pulse-marker {
+      border-radius: 50%;
+      animation: pulse 2.2s infinite;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.75); }
+      70% { box-shadow: 0 0 0 12px rgba(56, 189, 248, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+    }
+    .grid-bg {
+      background-image: radial-gradient(rgba(56, 189, 248, 0.12) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    .leaflet-tooltip {
+      background: rgba(11, 19, 36, 0.95);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: #f8fafc;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      border-radius: 6px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    }
+    .leaflet-tooltip-top:before { border-top-color: rgba(56, 189, 248, 0.4); }
+  </style>
+</head>
+<body class="flex flex-col h-screen select-none">
+
+  <!-- TOP COMMAND BAR -->
+  <header class="h-16 bg-[#09101f] border-b border-slate-800/90 px-4 md:px-6 flex items-center justify-between z-30 shrink-0">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-lg bg-sky-500/10 border border-sky-400/40 flex items-center justify-center text-sky-400 shadow-[0_0_15px_rgba(56,189,248,0.15)]">
+        <i data-lucide="shield-check" class="w-5 h-5"></i>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-xs sm:text-sm md:text-base font-bold tracking-wide text-white uppercase">
+            Bản Đồ Số Quản Lý An Toàn Hệ Thống Thông Tin
+          </h1>
+          <span class="hidden lg:inline-block px-2 py-0.5 text-[10px] font-mono bg-sky-500/10 text-sky-400 border border-sky-500/30 rounded">
+            KHÁNH HÒA • 65 ĐVHC
+          </span>
         </div>
+        <p class="text-[10px] sm:text-[11px] text-slate-400 font-mono">
+          THẨM ĐỊNH & BẢO ĐẢM ATTT THEO CẤP ĐỘ • NGHỊ ĐỊNH 331/2026/NĐ-CP (19/8/2026)
+        </p>
+      </div>
     </div>
 
-    <!-- Thanh điều hướng -->
-    <header class="sticky top-0 z-50 backdrop-blur-md bg-cyber-dark/80 border-b border-slate-800/80">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-            <a href="#" class="flex items-center space-x-3 group">
-                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center glow-cyan">
-                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                    </svg>
-                </div>
-                <div>
-                    <span class="text-lg font-bold tracking-wider text-white block leading-none">AN NINH MẠNG</span>
-                    <span class="text-xs font-mono text-cyan-400 tracking-widest">KHÁNH HÒA CYBERSEC</span>
-                </div>
-            </a>
+    <!-- SYSTEM STATUS INDICATOR -->
+    <div class="flex items-center gap-3 font-mono text-xs">
+      <div class="hidden sm:flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-300 px-3 py-1.5 rounded-md">
+        <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+        <span>STATUS: DEPLOYING // COMING SOON</span>
+      </div>
+      <a href="mailto:admin@anninhmangkhanhhoa.com" class="px-3 py-1.5 text-xs font-sans font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 flex items-center gap-1.5 transition">
+        <i data-lucide="mail" class="w-3.5 h-3.5 text-sky-400"></i>
+        <span class="hidden md:inline">Liên hệ Quản trị</span>
+      </a>
+    </div>
+  </header>
 
-            <nav class="hidden md:flex items-center space-x-8 text-sm font-medium text-slate-300">
-                <a href="#linh-vuc" class="hover:text-cyan-400 transition">Lĩnh vực chuyên môn</a>
-                <a href="#quy-trinh" class="hover:text-cyan-400 transition">Quy trình bảo mật</a>
-                <a href="#canh-bao" class="hover:text-cyan-400 transition">Cảnh báo sớm</a>
-                <a href="#lien-he" class="px-4 py-2 rounded-lg bg-cyan-500/10 border border-cyan-500/40 text-cyan-300 hover:bg-cyan-500 hover:text-slate-950 font-semibold transition">
-                    Báo cáo sự cố
-                </a>
-            </nav>
+  <!-- MAIN WORKSPACE WITH BACKGROUND GIS MAP -->
+  <div class="relative flex-1 flex overflow-hidden">
+    
+    <!-- BACKGROUND INTERACTIVE MAP -->
+    <div id="map" class="opacity-65 filter contrast-125"></div>
+
+    <!-- COMING SOON SOC OVERLAY -->
+    <div id="comingSoonOverlay" class="absolute inset-0 z-20 bg-[#050914]/65 backdrop-blur-[3px] grid-bg flex items-center justify-center p-4">
+      <div class="max-w-2xl w-full bg-[#0b1324]/95 border border-sky-500/30 rounded-2xl p-6 sm:p-8 shadow-[0_0_50px_rgba(2,132,199,0.18)] relative overflow-hidden">
+        
+        <!-- Top Accent Line -->
+        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-sky-500 via-cyan-400 to-emerald-400"></div>
+
+        <!-- Status Pill -->
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-5">
+          <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono bg-sky-500/10 text-sky-400 border border-sky-500/30">
+            <i data-lucide="radio" class="w-3.5 h-3.5 animate-pulse"></i>
+            ĐỒNG BỘ HẠ TẦNG SỐ TỈNH KHÁNH HÒA MỚI
+          </span>
+          <span class="text-xs font-mono text-slate-400">
+            16 PHƯỜNG • 48 XÃ • ĐẶC KHU TRƯỜNG SA
+          </span>
         </div>
-    </header>
 
-    <!-- Hero Section -->
-    <section class="relative pt-20 pb-28 overflow-hidden">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <div class="grid lg:grid-cols-12 gap-12 items-center">
-                <div class="lg:col-span-7 space-y-6">
-                    <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-950/60 border border-cyan-800/60 text-cyan-300 text-xs font-mono">
-                        <span>[BẢO VỆ HẠ TẦNG SỐ TRỌNG YẾU]</span>
-                    </div>
-                    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-tight">
-                        Lá Chắn Vững Chắc Trên <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Không Gian Mạng</span>
-                    </h1>
-                    <p class="text-slate-400 text-lg leading-relaxed max-w-2xl">
-                        Chuyên gia tư vấn kiến trúc bảo mật, thẩm định cấp độ an toàn hệ thống thông tin, điều tra số (Digital Forensics) và ứng cứu sự cố an ninh mạng tại tỉnh Khánh Hòa.
-                    </p>
-                    <div class="flex flex-wrap gap-4 pt-2">
-                        <a href="#lien-he" class="px-6 py-3.5 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold hover:opacity-95 transition glow-cyan">
-                            Yêu cầu Hỗ trợ Kỹ thuật
-                        </a>
-                        <a href="#linh-vuc" class="px-6 py-3.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 font-medium hover:border-cyan-500/50 transition">
-                            Khám phá Giải pháp
-                        </a>
-                    </div>
-                </div>
+        <!-- Main Heading -->
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-snug mb-3">
+          Bản Đồ Số Hệ Thống Thông Tin <br class="hidden sm:inline" />
+          <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-emerald-400">
+            Tỉnh Khánh Hòa — Sắp Ra Mắt
+          </span>
+        </h2>
 
-                <!-- Bảng Terminal Mô Phỏng SOC -->
-                <div class="lg:col-span-5">
-                    <div class="rounded-xl bg-cyber-card border border-slate-800 shadow-2xl overflow-hidden">
-                        <div class="bg-slate-900/90 px-4 py-3 border-b border-slate-800 flex items-center justify-between">
-                            <div class="flex space-x-2">
-                                <span class="w-3 h-3 rounded-full bg-rose-500"></span>
-                                <span class="w-3 h-3 rounded-full bg-amber-500"></span>
-                                <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
-                            </div>
-                            <span class="text-xs font-mono text-slate-400">soc-monitor@anninhmangkhanhhoa:~</span>
-                        </div>
-                        <div class="p-5 font-mono text-xs sm:text-sm space-y-3 text-slate-300">
-                            <p class="text-cyan-400">$ systemctl status cyber-defense.service</p>
-                            <p class="text-emerald-400">● cyber-defense.service - Khanh Hoa Security Shield</p>
-                            <p class="pl-4 text-slate-400">Loaded: loaded (/etc/systemd/system/soc.service)</p>
-                            <p class="pl-4 text-slate-400">Active: <span class="text-emerald-400 font-semibold">active (running)</span></p>
-                            <hr class="border-slate-800 my-2">
-                            <p class="text-cyan-400">$ tail -n 4 /var/log/audit/compliance.log</p>
-                            <p class="text-slate-400">[OK] Kiểm tra kiến trúc tường lửa & phân vùng mạng</p>
-                            <p class="text-slate-400">[OK] Thẩm định hồ sơ cấp độ ATTT (NĐ 85/2016/NĐ-CP)</p>
-                            <p class="text-slate-400">[OK] Rà soát mã độc, bóc tách mẫu & điều tra số</p>
-                            <p class="text-emerald-400">[OK] Kiểm toán tuân thủ bản quyền phần mềm hệ thống</p>
-                        </div>
-                    </div>
-                </div>
+        <p class="text-sm text-slate-300 leading-relaxed mb-6">
+          Nền tảng giám sát trực quan GIS phục vụ công tác quản lý, phân loại, thẩm định hồ sơ đề xuất cấp độ và theo dõi tuân thủ an toàn hệ thống thông tin trên toàn địa bàn <strong class="text-white">65 đơn vị hành chính tỉnh Khánh Hòa mới</strong> theo quy định tại <strong class="text-sky-300">Nghị định số 331/2026/NĐ-CP ngày 19/8/2026 của Chính phủ</strong> (thay thế Nghị định 85/2016/NĐ-CP).
+        </p>
+
+        <!-- Key Milestones / Progress Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6 font-mono text-xs">
+          <div class="bg-slate-900/90 border border-slate-800 rounded-lg p-3">
+            <div class="flex items-center justify-between text-emerald-400 mb-1">
+              <span>01. PHÁP LÝ</span>
+              <i data-lucide="check-circle-2" class="w-4 h-4"></i>
             </div>
+            <div class="text-slate-200 font-sans font-semibold">Chuẩn hóa NĐ 331/2026</div>
+            <div class="text-[11px] text-slate-400 font-sans mt-0.5">Thẩm định cấp độ 1–5 mới</div>
+          </div>
+
+          <div class="bg-slate-900/90 border border-slate-800 rounded-lg p-3">
+            <div class="flex items-center justify-between text-sky-400 mb-1">
+              <span>02. ĐỊA GIỚI MỚI</span>
+              <i data-lucide="map-pin" class="w-4 h-4"></i>
+            </div>
+            <div class="text-slate-200 font-sans font-semibold">Số hóa đủ 65 ĐVHC</div>
+            <div class="text-[11px] text-slate-400 font-sans mt-0.5">48 xã, 16 phường & ĐK Trường Sa</div>
+          </div>
+
+          <div class="bg-slate-900/90 border border-slate-800 rounded-lg p-3">
+            <div class="flex items-center justify-between text-amber-400 mb-1">
+              <span>03. BẢO MẬT</span>
+              <i data-lucide="lock" class="w-4 h-4"></i>
+            </div>
+            <div class="text-slate-200 font-sans font-semibold">Zero-Trust Access</div>
+            <div class="text-[11px] text-slate-400 font-sans mt-0.5">Phân quyền cán bộ chuyên trách</div>
+          </div>
         </div>
-    </section>
 
-    <!-- Chỉ số năng lực -->
-    <section class="border-y border-slate-800/80 bg-slate-950/50 py-10">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            <div>
-                <div class="text-3xl font-bold text-cyan-400 font-mono">24/7</div>
-                <div class="text-xs text-slate-400 mt-1 uppercase tracking-wider">Giám sát & Ứng cứu</div>
-            </div>
-            <div>
-                <div class="text-3xl font-bold text-cyan-400 font-mono">Cấp độ 1-5</div>
-                <div class="text-xs text-slate-400 mt-1 uppercase tracking-wider">Thẩm định ATTT</div>
-            </div>
-            <div>
-                <div class="text-3xl font-bold text-cyan-400 font-mono">100%</div>
-                <div class="text-xs text-slate-400 mt-1 uppercase tracking-wider">Tuân thủ Tiêu chuẩn</div>
-            </div>
-            <div>
-                <div class="text-3xl font-bold text-cyan-400 font-mono">Zero-Trust</div>
-                <div class="text-xs text-slate-400 mt-1 uppercase tracking-wider">Kiến trúc Bảo mật</div>
-            </div>
+        <!-- Progress Bar -->
+        <div class="mb-6">
+          <div class="flex justify-between text-xs font-mono mb-1.5">
+            <span class="text-slate-400">TIẾN ĐỘ CHUẨN HÓA DỮ LIỆU 65 XÃ, PHƯỜNG, ĐẶC KHU</span>
+            <span class="text-sky-400 font-bold">88%</span>
+          </div>
+          <div class="w-full h-2 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
+            <div class="h-full bg-gradient-to-r from-sky-500 to-emerald-400 rounded-full" style="width: 88%"></div>
+          </div>
         </div>
-    </section>
 
-    <!-- Lĩnh vực chuyên môn -->
-    <section id="linh-vuc" class="py-24">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center max-w-3xl mx-auto mb-16">
-                <h2 class="text-xs font-mono text-cyan-400 uppercase tracking-widest mb-2">Năng lực cốt lõi</h2>
-                <p class="text-3xl font-bold text-white">Giải Pháp Bảo Mật Toàn Diện</p>
-                <p class="text-slate-400 mt-3 text-sm">Đáp ứng đầy đủ các tiêu chuẩn kỹ thuật và quy định pháp lý về an toàn thông tin mạng tại Việt Nam.</p>
-            </div>
+        <!-- Footer Info & Actions -->
+        <div class="pt-4 border-t border-slate-800/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs">
+          <div class="text-slate-400 space-y-0.5">
+            <div class="text-slate-200 font-medium">Chuyên gia Quản lý An toàn Thông tin — Tỉnh Khánh Hòa</div>
+            <div class="font-mono text-[11px]">Email: <a href="mailto:admin@anninhmangkhanhhoa.com" class="text-sky-400 hover:underline">admin@anninhmangkhanhhoa.com</a></div>
+          </div>
 
-            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Card 1 -->
-                <div class="p-6 rounded-xl bg-cyber-card border border-slate-800 hover:border-cyan-500/50 transition group">
-                    <div class="w-12 h-12 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mb-5">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    </div>
-                    <h3 class="text-lg font-semibold text-white group-hover:text-cyan-400 transition">Thẩm Định Cấp Độ ATTT</h3>
-                    <p class="text-slate-400 text-sm mt-2 leading-relaxed">
-                        Tư vấn, xây dựng và thẩm định hồ sơ đề xuất cấp độ an toàn hệ thống thông tin theo Nghị định 85/2016/NĐ-CP và Thông tư 12/2022/TT-BTTTT.
-                    </p>
-                </div>
-
-                <!-- Card 2 -->
-                <div class="p-6 rounded-xl bg-cyber-card border border-slate-800 hover:border-cyan-500/50 transition group">
-                    <div class="w-12 h-12 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mb-5">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                    </div>
-                    <h3 class="text-lg font-semibold text-white group-hover:text-cyan-400 transition">Điều Tra Số & Phân Tích Mã Độc</h3>
-                    <p class="text-slate-400 text-sm mt-2 leading-relaxed">
-                        Thu thập, phục hồi chứng cứ điện tử, truy vết nguồn gốc tấn công APT, rà soát phần mềm bẻ khóa (crack) và bóc tách mã độc ẩn sâu trong hệ thống.
-                    </p>
-                </div>
-
-                <!-- Card 3 -->
-                <div class="p-6 rounded-xl bg-cyber-card border border-slate-800 hover:border-cyan-500/50 transition group">
-                    <div class="w-12 h-12 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mb-5">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                    </div>
-                    <h3 class="text-lg font-semibold text-white group-hover:text-cyan-400 transition">Kiểm Toán Kiến Trúc & Bản Quyền</h3>
-                    <p class="text-slate-400 text-sm mt-2 leading-relaxed">
-                        Đánh giá kiến trúc mạng, kiểm thử xâm nhập (Pentest), rà soát lỗ hổng bảo mật và kiểm toán tuân thủ bản quyền phần mềm cho cơ quan, doanh nghiệp.
-                    </p>
-                </div>
-            </div>
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <button onclick="togglePreviewMode()" id="previewBtn" class="w-full sm:w-auto px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-medium transition flex items-center justify-center gap-2 shadow-lg shadow-sky-500/20">
+              <i data-lucide="map" class="w-4 h-4"></i>
+              <span>Xem thử bản đồ 65 ĐVHC</span>
+            </button>
+          </div>
         </div>
-    </section>
 
-    <!-- Quy trình bảo mật -->
-    <section id="quy-trinh" class="py-20 bg-slate-950/60 border-y border-slate-800/80">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="mb-12">
-                <h2 class="text-xs font-mono text-cyan-400 uppercase tracking-widest mb-2">Tiêu chuẩn vận hành</h2>
-                <p class="text-2xl sm:text-3xl font-bold text-white">Quy Trình Ứng Cứu & Bảo Vệ 4 Lớp</p>
-            </div>
-            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div class="p-5 rounded-lg bg-slate-900/60 border border-slate-800">
-                    <span class="font-mono text-cyan-400 text-sm font-bold">01 // AUDIT</span>
-                    <h4 class="text-white font-semibold mt-2">Khảo sát & Đánh giá</h4>
-                    <p class="text-slate-400 text-xs mt-2 leading-relaxed">Rà soát toàn bộ bề mặt tấn công, thiết bị đầu cuối và cấu hình máy chủ.</p>
-                </div>
-                <div class="p-5 rounded-lg bg-slate-900/60 border border-slate-800">
-                    <span class="font-mono text-cyan-400 text-sm font-bold">02 // HARDENING</span>
-                    <h4 class="text-white font-semibold mt-2">Gia cố Hệ thống</h4>
-                    <p class="text-slate-400 text-xs mt-2 leading-relaxed">Vá lỗ hổng, chuẩn hóa tường lửa, phân tách VLAN và thiết lập chính sách Zero-Trust.</p>
-                </div>
-                <div class="p-5 rounded-lg bg-slate-900/60 border border-slate-800">
-                    <span class="font-mono text-cyan-400 text-sm font-bold">03 // DETECTION</span>
-                    <h4 class="text-white font-semibold mt-2">Giám sát Chủ động</h4>
-                    <p class="text-slate-400 text-xs mt-2 leading-relaxed">Theo dõi nhật ký truy cập (Log), phát hiện bất thường và ngăn chặn xâm nhập sớm.</p>
-                </div>
-                <div class="p-5 rounded-lg bg-slate-900/60 border border-slate-800">
-                    <span class="font-mono text-cyan-400 text-sm font-bold">04 // RESPONSE</span>
-                    <h4 class="text-white font-semibold mt-2">Ứng cứu & Điều tra</h4>
-                    <p class="text-slate-400 text-xs mt-2 leading-relaxed">Cô lập sự cố, khôi phục dữ liệu an toàn và phân tích nguyên nhân gốc rễ.</p>
-                </div>
-            </div>
-        </div>
-    </section>
+      </div>
+    </div>
 
-    <!-- Cảnh báo an ninh mạng -->
-    <section id="canh-bao" class="py-20">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="rounded-2xl bg-gradient-to-r from-slate-900 via-cyan-950/30 to-slate-900 border border-cyan-500/30 p-8 sm:p-10">
-                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                    <div class="space-y-2 max-w-2xl">
-                        <span class="text-xs font-mono text-amber-400 uppercase tracking-wider flex items-center gap-2">
-                            ● Khuyến nghị An toàn Thông tin
-                        </span>
-                        <h3 class="text-2xl font-bold text-white">Cảnh giác với phần mềm bẻ khóa (Crack) & Tấn công lừa đảo (Phishing)</h3>
-                        <p class="text-slate-300 text-sm leading-relaxed">
-                            Hơn 80% sự cố nhiễm mã độc tống tiền (Ransomware) và thất thoát dữ liệu nội bộ bắt nguồn từ việc sử dụng công cụ kích hoạt phần mềm trái phép hoặc mở tệp đính kèm giả mạo văn bản cơ quan nhà nước.
-                        </p>
-                    </div>
-                    <div class="shrink-0">
-                        <a href="#lien-he" class="inline-block px-6 py-3 rounded-lg bg-cyan-500 text-slate-950 font-semibold text-sm hover:bg-cyan-400 transition">
-                            Nhận Tư vấn Kiểm toán Hệ thống
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+    <!-- PREVIEW HUD CONTROLS (ONLY VISIBLE IN MAP PREVIEW MODE) -->
+    <div id="previewHud" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-30 flex flex-wrap items-center justify-center gap-2 bg-[#0b1324]/95 border border-sky-500/40 px-4 py-2 rounded-full shadow-2xl backdrop-blur">
+      <span class="text-[11px] font-mono text-emerald-400 px-2">● 65 ĐVHC ĐÃ ĐỊNH VỊ</span>
+      <button onclick="flyToMainland()" class="px-3 py-1 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-mono transition">
+        Đất liền (64 xã/phường)
+      </button>
+      <button onclick="flyToTruongSa()" class="px-3 py-1 rounded-full bg-sky-900/60 hover:bg-sky-800 text-sky-300 border border-sky-500/30 text-xs font-mono transition">
+        Đặc khu Trường Sa
+      </button>
+      <button onclick="togglePreviewMode()" class="px-3 py-1 rounded-full bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-xs font-mono flex items-center gap-1.5 transition">
+        <i data-lucide="eye-off" class="w-3.5 h-3.5"></i> Đóng xem thử
+      </button>
+    </div>
 
-    <!-- Liên hệ / Footer -->
-    <footer id="lien-he" class="bg-slate-950 border-t border-slate-800 pt-16 pb-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid md:grid-cols-3 gap-10 pb-12 border-b border-slate-800/80">
-                <div class="space-y-3">
-                    <div class="text-lg font-bold text-white tracking-wider">AN NINH MẠNG KHÁNH HÒA</div>
-                    <p class="text-slate-400 text-sm leading-relaxed">
-                        Đơn vị chuyên trách tư vấn giải pháp bảo mật, đánh giá an toàn thông tin và hỗ trợ xử lý sự cố không gian mạng tại Khánh Hòa.
-                    </p>
-                </div>
-                <div class="space-y-2 text-sm">
-                    <div class="font-semibold text-white uppercase tracking-wider text-xs font-mono text-cyan-400">Thông tin liên hệ</div>
-                    <p class="text-slate-300">📍 Nha Trang, Khánh Hòa, Việt Nam</p>
-                    <p class="text-slate-300">✉️ Email: <a href="mailto:admin@anninhmangkhanhhoa.com" class="text-cyan-400 hover:underline">admin@anninhmangkhanhhoa.com</a></p>
-                    <p class="text-slate-300">🌐 Website: <a href="https://anninhmangkhanhhoa.com" class="text-cyan-400 hover:underline">anninhmangkhanhhoa.com</a></p>
-                </div>
-                <div class="space-y-2 text-sm">
-                    <div class="font-semibold text-white uppercase tracking-wider text-xs font-mono text-cyan-400">Trạng thái bảo mật</div>
-                    <p class="text-slate-400 text-xs leading-relaxed">
-                        Trang web được bảo vệ bởi chứng chỉ SSL/TLS thông qua Cloudflare DNS & GitHub Pages Infrastructure.
-                    </p>
-                </div>
-            </div>
-            <div class="pt-8 flex flex-col sm:flex-row justify-between items-center text-xs text-slate-500 font-mono">
-                <p>© 2026 An Ninh Mạng Khánh Hòa (anninhmangkhanhhoa.com). All rights reserved.</p>
-                <p class="mt-2 sm:mt-0">SECURED BY KHANH HOA CYBER SECURITY</p>
-            </div>
-        </div>
-    </footer>
+  </div>
 
+  <script>
+    lucide.createIcons();
+
+    // KHỞI TẠO BẢN ĐỒ NỀN TỈNH KHÁNH HÒA MỚI (BAO GỒM KHU VỰC NINH THUẬN CŨ & TRƯỜNG SA)
+    const map = L.map('map', {
+      center: [12.02, 109.12],
+      zoom: 9,
+      zoomControl: false,
+      attributionControl: false
+    });
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      subdomains: 'abcd',
+      maxZoom: 18
+    }).addTo(map);
+
+    // DANH SÁCH ĐẦY ĐỦ 65 ĐƠN VỊ HÀNH CHÍNH TỈNH KHÁNH HÒA MỚI (16 PHƯỜNG, 48 XÃ, 01 ĐẶC KHU)
+    const adminUnits65 = [
+      // --- 16 PHƯỜNG ---
+      { name: "Phường Nha Trang", type: "Phường", lat: 12.2451, lng: 109.1945 },
+      { name: "Phường Bắc Nha Trang", type: "Phường", lat: 12.2885, lng: 109.1960 },
+      { name: "Phường Tây Nha Trang", type: "Phường", lat: 12.2560, lng: 109.1620 },
+      { name: "Phường Nam Nha Trang", type: "Phường", lat: 12.2120, lng: 109.1850 },
+      { name: "Phường Bắc Cam Ranh", type: "Phường", lat: 11.9850, lng: 109.1750 },
+      { name: "Phường Cam Ranh", type: "Phường", lat: 11.9214, lng: 109.1591 },
+      { name: "Phường Cam Linh", type: "Phường", lat: 11.9080, lng: 109.1480 },
+      { name: "Phường Ba Ngòi", type: "Phường", lat: 11.9020, lng: 109.1320 },
+      { name: "Phường Ninh Hòa", type: "Phường", lat: 12.4912, lng: 109.1235 },
+      { name: "Phường Đông Ninh Hòa", type: "Phường", lat: 12.5320, lng: 109.2180 },
+      { name: "Phường Hòa Thắng", type: "Phường", lat: 12.4650, lng: 109.1550 },
+      { name: "Phường Phan Rang", type: "Phường", lat: 11.5645, lng: 108.9885 },
+      { name: "Phường Đông Hải", type: "Phường", lat: 11.5520, lng: 109.0280 },
+      { name: "Phường Bảo An", type: "Phường", lat: 11.5820, lng: 108.9650 },
+      { name: "Phường Đô Vinh", type: "Phường", lat: 11.6010, lng: 108.9380 },
+      { name: "Phường Ninh Chử", type: "Phường", lat: 11.5880, lng: 109.0350 },
+
+      // --- 48 XÃ ---
+      // Khu vực Vạn Ninh cũ (5 xã)
+      { name: "Xã Đại Lãnh", type: "Xã", lat: 12.8420, lng: 109.3650 },
+      { name: "Xã Tu Bông", type: "Xã", lat: 12.7850, lng: 109.2780 },
+      { name: "Xã Vạn Thắng", type: "Xã", lat: 12.7350, lng: 109.2420 },
+      { name: "Xã Vạn Ninh", type: "Xã", lat: 12.6950, lng: 109.2250 },
+      { name: "Xã Vạn Hưng", type: "Xã", lat: 12.6320, lng: 109.1750 },
+      // Khu vực Ninh Hòa cũ (5 xã)
+      { name: "Xã Bắc Ninh Hòa", type: "Xã", lat: 12.5750, lng: 109.1150 },
+      { name: "Xã Tân Định", type: "Xã", lat: 12.5020, lng: 109.0850 },
+      { name: "Xã Nam Ninh Hòa", type: "Xã", lat: 12.4150, lng: 109.1120 },
+      { name: "Xã Tây Ninh Hòa", type: "Xã", lat: 12.5250, lng: 108.9850 },
+      { name: "Xã Hòa Trí", type: "Xã", lat: 12.5580, lng: 109.0620 },
+      // Khu vực Diên Khánh cũ (6 xã)
+      { name: "Xã Diên Khánh", type: "Xã", lat: 12.2588, lng: 109.0985 },
+      { name: "Xã Diên Lạc", type: "Xã", lat: 12.2750, lng: 109.0750 },
+      { name: "Xã Diên Điền", type: "Xã", lat: 12.2920, lng: 109.1080 },
+      { name: "Xã Diên Lâm", type: "Xã", lat: 12.3150, lng: 109.0120 },
+      { name: "Xã Diên Thọ", type: "Xã", lat: 12.2520, lng: 109.0280 },
+      { name: "Xã Suối Hiệp", type: "Xã", lat: 12.2280, lng: 109.0880 },
+      // Khu vực Cam Lâm & Cam Ranh cũ (5 xã)
+      { name: "Xã Cam Lâm", type: "Xã", lat: 12.0620, lng: 109.1605 },
+      { name: "Xã Suối Dầu", type: "Xã", lat: 12.1650, lng: 109.1150 },
+      { name: "Xã Cam Hiệp", type: "Xã", lat: 12.0880, lng: 109.1120 },
+      { name: "Xã Cam An", type: "Xã", lat: 12.0150, lng: 109.1280 },
+      { name: "Xã Nam Cam Ranh", type: "Xã", lat: 11.8350, lng: 109.1450 },
+      // Khu vực Khánh Vĩnh cũ (5 xã)
+      { name: "Xã Bắc Khánh Vĩnh", type: "Xã", lat: 12.3320, lng: 108.9350 },
+      { name: "Xã Trung Khánh Vĩnh", type: "Xã", lat: 12.3580, lng: 108.8820 },
+      { name: "Xã Tây Khánh Vĩnh", type: "Xã", lat: 12.2650, lng: 108.7850 },
+      { name: "Xã Nam Khánh Vĩnh", type: "Xã", lat: 12.2120, lng: 108.8650 },
+      { name: "Xã Khánh Vĩnh", type: "Xã", lat: 12.2855, lng: 108.9022 },
+      // Khu vực Khánh Sơn cũ (3 xã)
+      { name: "Xã Khánh Sơn", type: "Xã", lat: 12.0125, lng: 108.9480 },
+      { name: "Xã Tây Khánh Sơn", type: "Xã", lat: 12.0450, lng: 108.8750 },
+      { name: "Xã Đông Khánh Sơn", type: "Xã", lat: 11.9880, lng: 109.0150 },
+      // Khu vực Ninh Thuận cũ hợp nhất (19 xã)
+      { name: "Xã Ninh Phước", type: "Xã", lat: 11.5180, lng: 108.9320 },
+      { name: "Xã Phước Hữu", type: "Xã", lat: 11.4850, lng: 108.8850 },
+      { name: "Xã Phước Hậu", type: "Xã", lat: 11.5350, lng: 108.9120 },
+      { name: "Xã Thuận Nam", type: "Xã", lat: 11.4250, lng: 108.8950 },
+      { name: "Xã Cà Ná", type: "Xã", lat: 11.3420, lng: 108.8980 },
+      { name: "Xã Phước Hà", type: "Xã", lat: 11.4480, lng: 108.7850 },
+      { name: "Xã Phước Dinh", type: "Xã", lat: 11.4520, lng: 108.9950 },
+      { name: "Xã Ninh Hải", type: "Xã", lat: 11.6150, lng: 109.0480 },
+      { name: "Xã Xuân Hải", type: "Xã", lat: 11.6350, lng: 108.9950 },
+      { name: "Xã Vĩnh Hải", type: "Xã", lat: 11.6980, lng: 109.1650 },
+      { name: "Xã Thuận Bắc", type: "Xã", lat: 11.7120, lng: 109.0550 },
+      { name: "Xã Công Hải", type: "Xã", lat: 11.7750, lng: 109.0850 },
+      { name: "Xã Ninh Sơn", type: "Xã", lat: 11.7150, lng: 108.8750 },
+      { name: "Xã Lâm Sơn", type: "Xã", lat: 11.7950, lng: 108.7450 },
+      { name: "Xã Anh Dũng", type: "Xã", lat: 11.6350, lng: 108.7650 },
+      { name: "Xã Mỹ Sơn", type: "Xã", lat: 11.6750, lng: 108.8450 },
+      { name: "Xã Bác Ái Đông", type: "Xã", lat: 11.8350, lng: 108.9350 },
+      { name: "Xã Bác Ái", type: "Xã", lat: 11.8650, lng: 108.8650 },
+      { name: "Xã Bác Ái Tây", type: "Xã", lat: 11.9150, lng: 108.7850 },
+
+      // --- 01 ĐẶC KHU ---
+      { name: "Đặc khu Trường Sa", type: "Đặc khu", lat: 8.6450, lng: 111.9190 }
+    ];
+
+    adminUnits65.forEach(unit => {
+      let color = "#38bdf8"; // Xã: Xanh dương
+      let size = 9;
+      if (unit.type === "Phường") { color = "#34d399"; size = 11; } // Phường: Xanh ngọc
+      if (unit.type === "Đặc khu") { color = "#fbbf24"; size = 14; } // Đặc khu: Vàng hổ phách
+
+      const icon = L.divIcon({
+        html: `<div style="background-color: ${color}; width: ${size}px; height: ${size}px; border: 1.5px solid #050914;" class="pulse-marker"></div>`,
+        className: '',
+        iconSize: [size, size],
+        iconAnchor: [size/2, size/2]
+      });
+
+      L.marker([unit.lat, unit.lng], { icon })
+        .addTo(map)
+        .bindTooltip(`<b>${unit.name}</b><br/><span style="color:${color}; font-size:11px;">Phân loại: ${unit.type} • Tỉnh Khánh Hòa</span>`);
+    });
+
+    // CHUYỂN ĐỔI XEM THỬ BẢN ĐỒ NỀN
+    let isPreviewing = false;
+    function togglePreviewMode() {
+      const overlay = document.getElementById('comingSoonOverlay');
+      const mapEl = document.getElementById('map');
+      const hud = document.getElementById('previewHud');
+
+      isPreviewing = !isPreviewing;
+      if (isPreviewing) {
+        overlay.classList.add('hidden');
+        mapEl.classList.remove('opacity-65');
+        mapEl.classList.add('opacity-100');
+        hud.classList.remove('hidden');
+      } else {
+        overlay.classList.remove('hidden');
+        mapEl.classList.add('opacity-65');
+        mapEl.classList.remove('opacity-100');
+        hud.classList.add('hidden');
+      }
+    }
+
+    function flyToMainland() {
+      map.flyTo([12.02, 109.12], 9, { duration: 1.2 });
+    }
+
+    function flyToTruongSa() {
+      map.flyTo([8.6450, 111.9190], 7, { duration: 1.5 });
+    }
+  </script>
 </body>
 </html>
