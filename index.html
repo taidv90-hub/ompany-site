@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi" class="dark">
+<html lang="vi">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -12,181 +12,219 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Google Fonts: JetBrains Mono & Inter -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 
   <style>
-    body { font-family: 'Inter', sans-serif; background-color: #050914; color: #e2e8f0; overflow: hidden; }
+    body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; color: #0f172a; overflow: hidden; }
     .font-mono { font-family: 'JetBrains Mono', monospace; }
-    #map { height: calc(100vh - 64px); width: 100%; z-index: 1; background: #060b16; }
-    
-    .pulse-marker {
+    #map { height: calc(100vh - 64px); width: 100%; z-index: 1; background: #e8eef5; }
+
+    /* Nhãn tên đơn vị hiển thị cạnh điểm giống Google Maps / Bản đồ số hành chính */
+    .gis-label {
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #1e293b;
+      white-space: nowrap;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+    }
+    .gis-label-ward { color: #047857; border-color: rgba(16, 185, 129, 0.4); }
+    .gis-label-commune { color: #0369a1; border-color: rgba(14, 165, 233, 0.4); }
+    .gis-label-special { color: #b45309; border-color: rgba(245, 158, 11, 0.6); background: #fffbeb; }
+
+    /* Custom Pin Icon tròn phong cách bản đồ số chuyên ngành */
+    .custom-pin {
+      display: flex;
+      align-items: center;
+      justify-content: center;
       border-radius: 50%;
-      animation: pulse 2.2s infinite;
+      color: #ffffff;
+      border: 2px solid #ffffff;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.35);
+      transition: transform 0.15s ease;
     }
-    @keyframes pulse {
-      0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.75); }
-      70% { box-shadow: 0 0 0 12px rgba(56, 189, 248, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
-    }
-    .grid-bg {
-      background-image: radial-gradient(rgba(56, 189, 248, 0.12) 1px, transparent 1px);
-      background-size: 24px 24px;
-    }
-    .leaflet-tooltip {
-      background: rgba(11, 19, 36, 0.95);
-      border: 1px solid rgba(56, 189, 248, 0.4);
-      color: #f8fafc;
-      font-family: 'Inter', sans-serif;
-      font-size: 12px;
-      border-radius: 6px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-    }
-    .leaflet-tooltip-top:before { border-top-color: rgba(56, 189, 248, 0.4); }
+    .custom-pin:hover { transform: scale(1.2); z-index: 999 !important; }
   </style>
 </head>
 <body class="flex flex-col h-screen select-none">
 
-  <!-- TOP COMMAND BAR -->
-  <header class="h-16 bg-[#09101f] border-b border-slate-800/90 px-4 md:px-6 flex items-center justify-between z-30 shrink-0">
+  <!-- TOP HEADER BAR (LIGHT GOVERNMENT STYLE) -->
+  <header class="h-16 bg-white border-b border-slate-200 px-4 md:px-6 flex items-center justify-between z-30 shrink-0 shadow-sm">
     <div class="flex items-center gap-3">
-      <div class="w-9 h-9 rounded-lg bg-sky-500/10 border border-sky-400/40 flex items-center justify-center text-sky-400 shadow-[0_0_15px_rgba(56,189,248,0.15)]">
+      <div class="w-10 h-10 rounded-xl bg-sky-600 flex items-center justify-center text-white shadow-md shadow-sky-600/20">
         <i data-lucide="shield-check" class="w-5 h-5"></i>
       </div>
       <div>
         <div class="flex items-center gap-2">
-          <h1 class="text-xs sm:text-sm md:text-base font-bold tracking-wide text-white uppercase">
-            Bản Đồ Số Quản Lý An Toàn Hệ Thống Thông Tin
+          <h1 class="text-xs sm:text-sm md:text-base font-extrabold tracking-tight text-slate-900 uppercase">
+            Bản Đồ Số Quản Lý An Toàn Hệ Thống Thông Tin Tỉnh Khánh Hòa
           </h1>
-          <span class="hidden lg:inline-block px-2 py-0.5 text-[10px] font-mono bg-sky-500/10 text-sky-400 border border-sky-500/30 rounded">
-            KHÁNH HÒA • 65 ĐVHC
+          <span class="hidden lg:inline-block px-2 py-0.5 text-[11px] font-mono font-semibold bg-sky-50 text-sky-700 border border-sky-200 rounded">
+            65 ĐVHC
           </span>
         </div>
-        <p class="text-[10px] sm:text-[11px] text-slate-400 font-mono">
-          THẨM ĐỊNH & BẢO ĐẢM ATTT THEO CẤP ĐỘ • NGHỊ ĐỊNH 331/2026/NĐ-CP (19/8/2026)
+        <p class="text-[11px] text-slate-500 font-medium">
+          Quản lý, phân loại & thẩm định cấp độ ATTT theo <span class="text-slate-700 font-semibold">Nghị định 331/2026/NĐ-CP ngày 19/8/2026</span>
         </p>
       </div>
     </div>
 
-    <!-- SYSTEM STATUS INDICATOR -->
-    <div class="flex items-center gap-3 font-mono text-xs">
-      <div class="hidden sm:flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-300 px-3 py-1.5 rounded-md">
-        <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
-        <span>STATUS: DEPLOYING // COMING SOON</span>
+    <!-- RIGHT STATUS & CONTACT -->
+    <div class="flex items-center gap-2.5">
+      <div class="hidden sm:flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-800 px-3 py-1.5 rounded-lg text-xs font-semibold">
+        <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+        <span>COMING SOON • ĐANG ĐỒNG BỘ DỮ LIỆU</span>
       </div>
-      <a href="mailto:admin@anninhmangkhanhhoa.com" class="px-3 py-1.5 text-xs font-sans font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 flex items-center gap-1.5 transition">
+      <a href="mailto:admin@anninhmangkhanhhoa.com" class="px-3.5 py-2 text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white rounded-lg flex items-center gap-1.5 transition shadow-sm">
         <i data-lucide="mail" class="w-3.5 h-3.5 text-sky-400"></i>
         <span class="hidden md:inline">Liên hệ Quản trị</span>
       </a>
     </div>
   </header>
 
-  <!-- MAIN WORKSPACE WITH BACKGROUND GIS MAP -->
+  <!-- MAIN WORKSPACE -->
   <div class="relative flex-1 flex overflow-hidden">
     
-    <!-- BACKGROUND INTERACTIVE MAP -->
-    <div id="map" class="opacity-65 filter contrast-125"></div>
+    <!-- LIGHT INTERACTIVE GIS MAP -->
+    <div id="map"></div>
 
-    <!-- COMING SOON SOC OVERLAY -->
-    <div id="comingSoonOverlay" class="absolute inset-0 z-20 bg-[#050914]/65 backdrop-blur-[3px] grid-bg flex items-center justify-center p-4">
-      <div class="max-w-2xl w-full bg-[#0b1324]/95 border border-sky-500/30 rounded-2xl p-6 sm:p-8 shadow-[0_0_50px_rgba(2,132,199,0.18)] relative overflow-hidden">
+    <!-- CHÚ GIẢI BẢN ĐỒ GÓC TRÁI (LUÔN HIỂN THỊ KHI XEM BẢN ĐỒ) -->
+    <div id="mapLegend" class="hidden absolute top-4 left-4 z-20 bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl p-3.5 shadow-lg w-64 text-xs">
+      <div class="font-bold text-slate-800 uppercase text-[11px] tracking-wider mb-2.5 flex items-center gap-1.5">
+        <i data-lucide="layers" class="w-3.5 h-3.5 text-sky-600"></i>
+        Phân lớp 65 ĐVHC Khánh Hòa
+      </div>
+      <div class="space-y-2 text-slate-600">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="w-3.5 h-3.5 rounded-full bg-emerald-600 border-2 border-white shadow"></span>
+            <span>Phường (16 đơn vị)</span>
+          </div>
+          <span class="font-mono text-[11px] font-semibold text-emerald-700">16</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="w-3.5 h-3.5 rounded-full bg-sky-600 border-2 border-white shadow"></span>
+            <span>Xã (48 đơn vị)</span>
+          </div>
+          <span class="font-mono text-[11px] font-semibold text-sky-700">48</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="w-3.5 h-3.5 rounded-full bg-amber-500 border-2 border-white shadow"></span>
+            <span>Đặc khu Trường Sa</span>
+          </div>
+          <span class="font-mono text-[11px] font-semibold text-amber-700">01</span>
+        </div>
+        <div class="pt-2 mt-2 border-t border-slate-100 flex items-center gap-2 text-[11px] text-slate-500">
+          <span class="w-4 h-2.5 bg-sky-500/15 border border-sky-600 border-dashed inline-block"></span>
+          <span>Ranh giới tỉnh Khánh Hòa mới</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMING SOON OVERLAY (CLEAN LIGHT GLASSMORPHISM) -->
+    <div id="comingSoonOverlay" class="absolute inset-0 z-20 bg-slate-900/35 backdrop-blur-[2px] flex items-center justify-center p-4">
+      <div class="max-w-2xl w-full bg-white/95 backdrop-blur-xl border border-slate-200/90 rounded-2xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
         
-        <!-- Top Accent Line -->
-        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-sky-500 via-cyan-400 to-emerald-400"></div>
+        <!-- Top Accent Bar -->
+        <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-sky-600 via-blue-500 to-emerald-500"></div>
 
-        <!-- Status Pill -->
-        <div class="flex flex-wrap items-center justify-between gap-2 mb-5">
-          <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono bg-sky-500/10 text-sky-400 border border-sky-500/30">
-            <i data-lucide="radio" class="w-3.5 h-3.5 animate-pulse"></i>
-            ĐỒNG BỘ HẠ TẦNG SỐ TỈNH KHÁNH HÒA MỚI
+        <!-- Badges -->
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-sky-50 text-sky-700 border border-sky-200">
+            <i data-lucide="map-pinned" class="w-3.5 h-3.5"></i>
+            HỆ THỐNG BẢN ĐỒ SỐ GIS CẤP TỈNH
           </span>
-          <span class="text-xs font-mono text-slate-400">
+          <span class="text-xs font-mono font-semibold text-slate-500">
             16 PHƯỜNG • 48 XÃ • ĐẶC KHU TRƯỜNG SA
           </span>
         </div>
 
-        <!-- Main Heading -->
-        <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-snug mb-3">
+        <!-- Title -->
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-snug mb-3">
           Bản Đồ Số Hệ Thống Thông Tin <br class="hidden sm:inline" />
-          <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-emerald-400">
-            Tỉnh Khánh Hòa — Sắp Ra Mắt
-          </span>
+          <span class="text-sky-600">Tỉnh Khánh Hòa — Sắp Ra Mắt</span>
         </h2>
 
-        <p class="text-sm text-slate-300 leading-relaxed mb-6">
-          Nền tảng giám sát trực quan GIS phục vụ công tác quản lý, phân loại, thẩm định hồ sơ đề xuất cấp độ và theo dõi tuân thủ an toàn hệ thống thông tin trên toàn địa bàn <strong class="text-white">65 đơn vị hành chính tỉnh Khánh Hòa mới</strong> theo quy định tại <strong class="text-sky-300">Nghị định số 331/2026/NĐ-CP ngày 19/8/2026 của Chính phủ</strong> (thay thế Nghị định 85/2016/NĐ-CP).
+        <p class="text-sm text-slate-600 leading-relaxed mb-6">
+          Nền tảng bản đồ số trực quan phục vụ công tác quản lý nhà nước, phân loại, thẩm định hồ sơ đề xuất cấp độ và giám sát tuân thủ an toàn hệ thống thông tin trên toàn địa bàn <strong class="text-slate-900">65 đơn vị hành chính tỉnh Khánh Hòa mới</strong> theo quy định tại <strong class="text-sky-700">Nghị định số 331/2026/NĐ-CP ngày 19/8/2026 của Chính phủ</strong> (thay thế Nghị định 85/2016/NĐ-CP).
         </p>
 
-        <!-- Key Milestones / Progress Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6 font-mono text-xs">
-          <div class="bg-slate-900/90 border border-slate-800 rounded-lg p-3">
-            <div class="flex items-center justify-between text-emerald-400 mb-1">
-              <span>01. PHÁP LÝ</span>
+        <!-- 3 Status Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6 text-xs">
+          <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5">
+            <div class="flex items-center justify-between text-emerald-600 font-bold mb-1">
+              <span>01. CƠ SỞ PHÁP LÝ</span>
               <i data-lucide="check-circle-2" class="w-4 h-4"></i>
             </div>
-            <div class="text-slate-200 font-sans font-semibold">Chuẩn hóa NĐ 331/2026</div>
-            <div class="text-[11px] text-slate-400 font-sans mt-0.5">Thẩm định cấp độ 1–5 mới</div>
+            <div class="text-slate-900 font-semibold">Nghị định 331/2026</div>
+            <div class="text-[11px] text-slate-500 mt-0.5">Chuẩn hóa hồ sơ cấp độ 1–5</div>
           </div>
 
-          <div class="bg-slate-900/90 border border-slate-800 rounded-lg p-3">
-            <div class="flex items-center justify-between text-sky-400 mb-1">
+          <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5">
+            <div class="flex items-center justify-between text-sky-600 font-bold mb-1">
               <span>02. ĐỊA GIỚI MỚI</span>
-              <i data-lucide="map-pin" class="w-4 h-4"></i>
+              <i data-lucide="compass" class="w-4 h-4"></i>
             </div>
-            <div class="text-slate-200 font-sans font-semibold">Số hóa đủ 65 ĐVHC</div>
-            <div class="text-[11px] text-slate-400 font-sans mt-0.5">48 xã, 16 phường & ĐK Trường Sa</div>
+            <div class="text-slate-900 font-semibold">Đủ 65 ĐVHC cấp xã</div>
+            <div class="text-[11px] text-slate-500 mt-0.5">48 xã, 16 phường & ĐK Trường Sa</div>
           </div>
 
-          <div class="bg-slate-900/90 border border-slate-800 rounded-lg p-3">
-            <div class="flex items-center justify-between text-amber-400 mb-1">
-              <span>03. BẢO MẬT</span>
-              <i data-lucide="lock" class="w-4 h-4"></i>
+          <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5">
+            <div class="flex items-center justify-between text-amber-600 font-bold mb-1">
+              <span>03. PHÂN QUYỀN</span>
+              <i data-lucide="shield-alert" class="w-4 h-4"></i>
             </div>
-            <div class="text-slate-200 font-sans font-semibold">Zero-Trust Access</div>
-            <div class="text-[11px] text-slate-400 font-sans mt-0.5">Phân quyền cán bộ chuyên trách</div>
+            <div class="text-slate-900 font-semibold">Bảo mật dữ liệu</div>
+            <div class="text-[11px] text-slate-500 mt-0.5">Xác thực cán bộ chuyên trách</div>
           </div>
         </div>
 
-        <!-- Progress Bar -->
+        <!-- Progress -->
         <div class="mb-6">
-          <div class="flex justify-between text-xs font-mono mb-1.5">
-            <span class="text-slate-400">TIẾN ĐỘ CHUẨN HÓA DỮ LIỆU 65 XÃ, PHƯỜNG, ĐẶC KHU</span>
-            <span class="text-sky-400 font-bold">88%</span>
+          <div class="flex justify-between text-xs font-semibold mb-1.5">
+            <span class="text-slate-600">Tiến độ số hóa & tích hợp tọa độ 65 xã, phường, đặc khu</span>
+            <span class="text-sky-600 font-mono">90%</span>
           </div>
-          <div class="w-full h-2 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
-            <div class="h-full bg-gradient-to-r from-sky-500 to-emerald-400 rounded-full" style="width: 88%"></div>
+          <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+            <div class="h-full bg-gradient-to-r from-sky-600 to-emerald-500 rounded-full" style="width: 90%"></div>
           </div>
         </div>
 
-        <!-- Footer Info & Actions -->
-        <div class="pt-4 border-t border-slate-800/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs">
-          <div class="text-slate-400 space-y-0.5">
-            <div class="text-slate-200 font-medium">Chuyên gia Quản lý An toàn Thông tin — Tỉnh Khánh Hòa</div>
-            <div class="font-mono text-[11px]">Email: <a href="mailto:admin@anninhmangkhanhhoa.com" class="text-sky-400 hover:underline">admin@anninhmangkhanhhoa.com</a></div>
+        <!-- Footer & Action -->
+        <div class="pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs">
+          <div class="text-slate-500 space-y-0.5">
+            <div class="text-slate-800 font-semibold">Chuyên gia Quản lý An toàn Thông tin — Tỉnh Khánh Hòa</div>
+            <div class="font-mono text-[11px]">Email: <a href="mailto:admin@anninhmangkhanhhoa.com" class="text-sky-600 hover:underline">admin@anninhmangkhanhhoa.com</a></div>
           </div>
 
-          <div class="flex items-center gap-2 w-full sm:w-auto">
-            <button onclick="togglePreviewMode()" id="previewBtn" class="w-full sm:w-auto px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-medium transition flex items-center justify-center gap-2 shadow-lg shadow-sky-500/20">
-              <i data-lucide="map" class="w-4 h-4"></i>
-              <span>Xem thử bản đồ 65 ĐVHC</span>
-            </button>
-          </div>
+          <button onclick="togglePreviewMode()" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-semibold transition flex items-center justify-center gap-2 shadow-md shadow-sky-600/20">
+            <i data-lucide="map" class="w-4 h-4"></i>
+            <span>Xem bản đồ 65 ĐVHC</span>
+          </button>
         </div>
 
       </div>
     </div>
 
-    <!-- PREVIEW HUD CONTROLS (ONLY VISIBLE IN MAP PREVIEW MODE) -->
-    <div id="previewHud" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-30 flex flex-wrap items-center justify-center gap-2 bg-[#0b1324]/95 border border-sky-500/40 px-4 py-2 rounded-full shadow-2xl backdrop-blur">
-      <span class="text-[11px] font-mono text-emerald-400 px-2">● 65 ĐVHC ĐÃ ĐỊNH VỊ</span>
-      <button onclick="flyToMainland()" class="px-3 py-1 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-mono transition">
-        Đất liền (64 xã/phường)
+    <!-- BOTTOM NAVIGATION BAR (VISIBLE WHEN PREVIEWING MAP) -->
+    <div id="previewHud" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-30 flex flex-wrap items-center justify-center gap-2 bg-white/95 border border-slate-300 px-4 py-2 rounded-full shadow-xl backdrop-blur">
+      <span class="text-xs font-semibold text-emerald-700 px-2 flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full bg-emerald-500"></span> 65 ĐVHC Khánh Hòa
+      </span>
+      <button onclick="flyToMainland()" class="px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold transition">
+        Toàn cảnh đất liền (64 ĐVHC)
       </button>
-      <button onclick="flyToTruongSa()" class="px-3 py-1 rounded-full bg-sky-900/60 hover:bg-sky-800 text-sky-300 border border-sky-500/30 text-xs font-mono transition">
+      <button onclick="flyToTruongSa()" class="px-3 py-1.5 rounded-full bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 text-xs font-semibold transition">
         Đặc khu Trường Sa
       </button>
-      <button onclick="togglePreviewMode()" class="px-3 py-1 rounded-full bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-xs font-mono flex items-center gap-1.5 transition">
-        <i data-lucide="eye-off" class="w-3.5 h-3.5"></i> Đóng xem thử
+      <button onclick="togglePreviewMode()" class="px-3 py-1.5 rounded-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold flex items-center gap-1.5 transition">
+        <i data-lucide="x" class="w-3.5 h-3.5"></i> Đóng xem thử
       </button>
     </div>
 
@@ -195,146 +233,143 @@
   <script>
     lucide.createIcons();
 
-    // KHỞI TẠO BẢN ĐỒ NỀN TỈNH KHÁNH HÒA MỚI (BAO GỒM KHU VỰC NINH THUẬN CŨ & TRƯỜNG SA)
+    // KHỞI TẠO BẢN ĐỒ NỀN SÁNG (ESRI WORLD STREET MAP - KHÔNG API KEY, RÕ ĐƯỜNG PHỐ & ĐỊA HÌNH)
     const map = L.map('map', {
       center: [12.02, 109.12],
       zoom: 9,
-      zoomControl: false,
-      attributionControl: false
+      zoomControl: false
     });
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      subdomains: 'abcd',
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+      attribution: '© Esri & OpenStreetMap | Hệ thống Bản đồ số ATTT Khánh Hòa',
       maxZoom: 18
     }).addTo(map);
 
-    // DANH SÁCH ĐẦY ĐỦ 65 ĐƠN VỊ HÀNH CHÍNH TỈNH KHÁNH HÒA MỚI (16 PHƯỜNG, 48 XÃ, 01 ĐẶC KHU)
-    const adminUnits65 = [
-      // --- 16 PHƯỜNG ---
-      { name: "Phường Nha Trang", type: "Phường", lat: 12.2451, lng: 109.1945 },
-      { name: "Phường Bắc Nha Trang", type: "Phường", lat: 12.2885, lng: 109.1960 },
-      { name: "Phường Tây Nha Trang", type: "Phường", lat: 12.2560, lng: 109.1620 },
-      { name: "Phường Nam Nha Trang", type: "Phường", lat: 12.2120, lng: 109.1850 },
-      { name: "Phường Bắc Cam Ranh", type: "Phường", lat: 11.9850, lng: 109.1750 },
-      { name: "Phường Cam Ranh", type: "Phường", lat: 11.9214, lng: 109.1591 },
-      { name: "Phường Cam Linh", type: "Phường", lat: 11.9080, lng: 109.1480 },
-      { name: "Phường Ba Ngòi", type: "Phường", lat: 11.9020, lng: 109.1320 },
-      { name: "Phường Ninh Hòa", type: "Phường", lat: 12.4912, lng: 109.1235 },
-      { name: "Phường Đông Ninh Hòa", type: "Phường", lat: 12.5320, lng: 109.2180 },
-      { name: "Phường Hòa Thắng", type: "Phường", lat: 12.4650, lng: 109.1550 },
-      { name: "Phường Phan Rang", type: "Phường", lat: 11.5645, lng: 108.9885 },
-      { name: "Phường Đông Hải", type: "Phường", lat: 11.5520, lng: 109.0280 },
-      { name: "Phường Bảo An", type: "Phường", lat: 11.5820, lng: 108.9650 },
-      { name: "Phường Đô Vinh", type: "Phường", lat: 11.6010, lng: 108.9380 },
-      { name: "Phường Ninh Chử", type: "Phường", lat: 11.5880, lng: 109.0350 },
-
-      // --- 48 XÃ ---
-      // Khu vực Vạn Ninh cũ (5 xã)
-      { name: "Xã Đại Lãnh", type: "Xã", lat: 12.8420, lng: 109.3650 },
-      { name: "Xã Tu Bông", type: "Xã", lat: 12.7850, lng: 109.2780 },
-      { name: "Xã Vạn Thắng", type: "Xã", lat: 12.7350, lng: 109.2420 },
-      { name: "Xã Vạn Ninh", type: "Xã", lat: 12.6950, lng: 109.2250 },
-      { name: "Xã Vạn Hưng", type: "Xã", lat: 12.6320, lng: 109.1750 },
-      // Khu vực Ninh Hòa cũ (5 xã)
-      { name: "Xã Bắc Ninh Hòa", type: "Xã", lat: 12.5750, lng: 109.1150 },
-      { name: "Xã Tân Định", type: "Xã", lat: 12.5020, lng: 109.0850 },
-      { name: "Xã Nam Ninh Hòa", type: "Xã", lat: 12.4150, lng: 109.1120 },
-      { name: "Xã Tây Ninh Hòa", type: "Xã", lat: 12.5250, lng: 108.9850 },
-      { name: "Xã Hòa Trí", type: "Xã", lat: 12.5580, lng: 109.0620 },
-      // Khu vực Diên Khánh cũ (6 xã)
-      { name: "Xã Diên Khánh", type: "Xã", lat: 12.2588, lng: 109.0985 },
-      { name: "Xã Diên Lạc", type: "Xã", lat: 12.2750, lng: 109.0750 },
-      { name: "Xã Diên Điền", type: "Xã", lat: 12.2920, lng: 109.1080 },
-      { name: "Xã Diên Lâm", type: "Xã", lat: 12.3150, lng: 109.0120 },
-      { name: "Xã Diên Thọ", type: "Xã", lat: 12.2520, lng: 109.0280 },
-      { name: "Xã Suối Hiệp", type: "Xã", lat: 12.2280, lng: 109.0880 },
-      // Khu vực Cam Lâm & Cam Ranh cũ (5 xã)
-      { name: "Xã Cam Lâm", type: "Xã", lat: 12.0620, lng: 109.1605 },
-      { name: "Xã Suối Dầu", type: "Xã", lat: 12.1650, lng: 109.1150 },
-      { name: "Xã Cam Hiệp", type: "Xã", lat: 12.0880, lng: 109.1120 },
-      { name: "Xã Cam An", type: "Xã", lat: 12.0150, lng: 109.1280 },
-      { name: "Xã Nam Cam Ranh", type: "Xã", lat: 11.8350, lng: 109.1450 },
-      // Khu vực Khánh Vĩnh cũ (5 xã)
-      { name: "Xã Bắc Khánh Vĩnh", type: "Xã", lat: 12.3320, lng: 108.9350 },
-      { name: "Xã Trung Khánh Vĩnh", type: "Xã", lat: 12.3580, lng: 108.8820 },
-      { name: "Xã Tây Khánh Vĩnh", type: "Xã", lat: 12.2650, lng: 108.7850 },
-      { name: "Xã Nam Khánh Vĩnh", type: "Xã", lat: 12.2120, lng: 108.8650 },
-      { name: "Xã Khánh Vĩnh", type: "Xã", lat: 12.2855, lng: 108.9022 },
-      // Khu vực Khánh Sơn cũ (3 xã)
-      { name: "Xã Khánh Sơn", type: "Xã", lat: 12.0125, lng: 108.9480 },
-      { name: "Xã Tây Khánh Sơn", type: "Xã", lat: 12.0450, lng: 108.8750 },
-      { name: "Xã Đông Khánh Sơn", type: "Xã", lat: 11.9880, lng: 109.0150 },
-      // Khu vực Ninh Thuận cũ hợp nhất (19 xã)
-      { name: "Xã Ninh Phước", type: "Xã", lat: 11.5180, lng: 108.9320 },
-      { name: "Xã Phước Hữu", type: "Xã", lat: 11.4850, lng: 108.8850 },
-      { name: "Xã Phước Hậu", type: "Xã", lat: 11.5350, lng: 108.9120 },
-      { name: "Xã Thuận Nam", type: "Xã", lat: 11.4250, lng: 108.8950 },
-      { name: "Xã Cà Ná", type: "Xã", lat: 11.3420, lng: 108.8980 },
-      { name: "Xã Phước Hà", type: "Xã", lat: 11.4480, lng: 108.7850 },
-      { name: "Xã Phước Dinh", type: "Xã", lat: 11.4520, lng: 108.9950 },
-      { name: "Xã Ninh Hải", type: "Xã", lat: 11.6150, lng: 109.0480 },
-      { name: "Xã Xuân Hải", type: "Xã", lat: 11.6350, lng: 108.9950 },
-      { name: "Xã Vĩnh Hải", type: "Xã", lat: 11.6980, lng: 109.1650 },
-      { name: "Xã Thuận Bắc", type: "Xã", lat: 11.7120, lng: 109.0550 },
-      { name: "Xã Công Hải", type: "Xã", lat: 11.7750, lng: 109.0850 },
-      { name: "Xã Ninh Sơn", type: "Xã", lat: 11.7150, lng: 108.8750 },
-      { name: "Xã Lâm Sơn", type: "Xã", lat: 11.7950, lng: 108.7450 },
-      { name: "Xã Anh Dũng", type: "Xã", lat: 11.6350, lng: 108.7650 },
-      { name: "Xã Mỹ Sơn", type: "Xã", lat: 11.6750, lng: 108.8450 },
-      { name: "Xã Bác Ái Đông", type: "Xã", lat: 11.8350, lng: 108.9350 },
-      { name: "Xã Bác Ái", type: "Xã", lat: 11.8650, lng: 108.8650 },
-      { name: "Xã Bác Ái Tây", type: "Xã", lat: 11.9150, lng: 108.7850 },
-
-      // --- 01 ĐẶC KHU ---
-      { name: "Đặc khu Trường Sa", type: "Đặc khu", lat: 8.6450, lng: 111.9190 }
+    // KHOANH VÙNG ĐỊA GIỚI TỈNH KHÁNH HÒA MỚI (BAO QUÁT TỪ ĐẠI LÃNH ĐẾN CÀ NÁ)
+    const khanhHoaNewBoundary = [
+      [12.885, 109.390], // Mũi Đôi - Đại Lãnh (Cực Đông Bắc)
+      [12.850, 109.150],
+      [12.680, 108.950],
+      [12.420, 108.850],
+      [12.350, 108.680], // Giáp Đắk Lắk / Lâm Đồng (Tây Khánh Vĩnh)
+      [12.080, 108.720],
+      [11.950, 108.660], // Giáp Lâm Đồng (Bác Ái Tây)
+      [11.780, 108.650], // Lâm Sơn - Ninh Sơn
+      [11.550, 108.680], // Anh Dũng - Mỹ Sơn
+      [11.310, 108.860], // Cà Ná (Cực Nam giáp Bình Thuận)
+      [11.340, 108.930],
+      [11.550, 109.050], // Đông Hải - Ninh Chử
+      [11.720, 109.220], // Vĩnh Hải - Vịnh Vĩnh Hy
+      [11.880, 109.240], // Bình Ba - Cam Ranh
+      [12.240, 109.240], // Vịnh Nha Trang
+      [12.550, 109.350], // Hòn Khói - Ninh Hòa
+      [12.885, 109.390]
     ];
 
+    L.polygon(khanhHoaNewBoundary, {
+      color: '#0284c7',
+      weight: 2,
+      dashArray: '6, 6',
+      fillColor: '#0ea5e9',
+      fillOpacity: 0.08
+    }).addTo(map);
+
+    // DANH SÁCH 65 ĐƠN VỊ HÀNH CHÍNH TỈNH KHÁNH HÒA MỚI (16 PHƯỜNG, 48 XÃ, 01 ĐẶC KHU)
+    const adminUnits65 = [
+      // --- 16 PHƯỜNG ---
+      { name: "P. Nha Trang", fullName: "Phường Nha Trang", type: "Phường", lat: 12.2451, lng: 109.1945 },
+      { name: "P. Bắc Nha Trang", fullName: "Phường Bắc Nha Trang", type: "Phường", lat: 12.2885, lng: 109.1960 },
+      { name: "P. Tây Nha Trang", fullName: "Phường Tây Nha Trang", type: "Phường", lat: 12.2560, lng: 109.1620 },
+      { name: "P. Nam Nha Trang", fullName: "Phường Nam Nha Trang", type: "Phường", lat: 12.2120, lng: 109.1850 },
+      { name: "P. Bắc Cam Ranh", fullName: "Phường Bắc Cam Ranh", type: "Phường", lat: 11.9850, lng: 109.1750 },
+      { name: "P. Cam Ranh", fullName: "Phường Cam Ranh", type: "Phường", lat: 11.9214, lng: 109.1591 },
+      { name: "P. Cam Linh", fullName: "Phường Cam Linh", type: "Phường", lat: 11.9080, lng: 109.1480 },
+      { name: "P. Ba Ngòi", fullName: "Phường Ba Ngòi", type: "Phường", lat: 11.9020, lng: 109.1320 },
+      { name: "P. Ninh Hòa", fullName: "Phường Ninh Hòa", type: "Phường", lat: 12.4912, lng: 109.1235 },
+      { name: "P. Đông Ninh Hòa", fullName: "Phường Đông Ninh Hòa", type: "Phường", lat: 12.5320, lng: 109.2180 },
+      { name: "P. Hòa Thắng", fullName: "Phường Hòa Thắng", type: "Phường", lat: 12.4650, lng: 109.1550 },
+      { name: "P. Phan Rang", fullName: "Phường Phan Rang", type: "Phường", lat: 11.5645, lng: 108.9885 },
+      { name: "P. Đông Hải", fullName: "Phường Đông Hải", type: "Phường", lat: 11.5520, lng: 109.0280 },
+      { name: "P. Bảo An", fullName: "Phường Bảo An", type: "Phường", lat: 11.5820, lng: 108.9650 },
+      { name: "P. Đô Vinh", fullName: "Phường Đô Vinh", type: "Phường", lat: 11.6010, lng: 108.9380 },
+      { name: "P. Ninh Chử", fullName: "Phường Ninh Chử", type: "Phường", lat: 11.5880, lng: 109.0350 },
+
+      // --- 48 XÃ ---
+      { name: "Xã Đại Lãnh", fullName: "Xã Đại Lãnh", type: "Xã", lat: 12.8420, lng: 109.3650 },
+      { name: "Xã Tu Bông", fullName: "Xã Tu Bông", type: "Xã", lat: 12.7850, lng: 109.2780 },
+      { name: "Xã Vạn Thắng", fullName: "Xã Vạn Thắng", type: "Xã", lat: 12.7350, lng: 109.2420 },
+      { name: "Xã Vạn Ninh", fullName: "Xã Vạn Ninh", type: "Xã", lat: 12.6950, lng: 109.2250 },
+      { name: "Xã Vạn Hưng", fullName: "Xã Vạn Hưng", type: "Xã", lat: 12.6320, lng: 109.1750 },
+      { name: "Xã Bắc Ninh Hòa", fullName: "Xã Bắc Ninh Hòa", type: "Xã", lat: 12.5750, lng: 109.1150 },
+      { name: "Xã Tân Định", fullName: "Xã Tân Định", type: "Xã", lat: 12.5020, lng: 109.0850 },
+      { name: "Xã Nam Ninh Hòa", fullName: "Xã Nam Ninh Hòa", type: "Xã", lat: 12.4150, lng: 109.1120 },
+      { name: "Xã Tây Ninh Hòa", fullName: "Xã Tây Ninh Hòa", type: "Xã", lat: 12.5250, lng: 108.9850 },
+      { name: "Xã Hòa Trí", fullName: "Xã Hòa Trí", type: "Xã", lat: 12.5580, lng: 109.0620 },
+      { name: "Xã Diên Khánh", fullName: "Xã Diên Khánh", type: "Xã", lat: 12.2588, lng: 109.0985 },
+      { name: "Xã Diên Lạc", fullName: "Xã Diên Lạc", type: "Xã", lat: 12.2750, lng: 109.0750 },
+      { name: "Xã Diên Điền", fullName: "Xã Diên Điền", type: "Xã", lat: 12.2920, lng: 109.1080 },
+      { name: "Xã Diên Lâm", fullName: "Xã Diên Lâm", type: "Xã", lat: 12.3150, lng: 109.0120 },
+      { name: "Xã Diên Thọ", fullName: "Xã Diên Thọ", type: "Xã", lat: 12.2520, lng: 109.0280 },
+      { name: "Xã Suối Hiệp", fullName: "Xã Suối Hiệp", type: "Xã", lat: 12.2280, lng: 109.0880 },
+      { name: "Xã Cam Lâm", fullName: "Xã Cam Lâm", type: "Xã", lat: 12.0620, lng: 109.1605 },
+      { name: "Xã Suối Dầu", fullName: "Xã Suối Dầu", type: "Xã", lat: 12.1650, lng: 109.1150 },
+      { name: "Xã Cam Hiệp", fullName: "Xã Cam Hiệp", type: "Xã", lat: 12.0880, lng: 109.1120 },
+      { name: "Xã Cam An", fullName: "Xã Cam An", type: "Xã", lat: 12.0150, lng: 109.1280 },
+      { name: "Xã Nam Cam Ranh", fullName: "Xã Nam Cam Ranh", type: "Xã", lat: 11.8350, lng: 109.1450 },
+      { name: "Xã Bắc Khánh Vĩnh", fullName: "Xã Bắc Khánh Vĩnh", type: "Xã", lat: 12.3320, lng: 108.9350 },
+      { name: "Xã Trung Khánh Vĩnh", fullName: "Xã Trung Khánh Vĩnh", type: "Xã", lat: 12.3580, lng: 108.8820 },
+      { name: "Xã Tây Khánh Vĩnh", fullName: "Xã Tây Khánh Vĩnh", type: "Xã", lat: 12.2650, lng: 108.7850 },
+      { name: "Xã Nam Khánh Vĩnh", fullName: "Xã Nam Khánh Vĩnh", type: "Xã", lat: 12.2120, lng: 108.8650 },
+      { name: "Xã Khánh Vĩnh", fullName: "Xã Khánh Vĩnh", type: "Xã", lat: 12.2855, lng: 108.9022 },
+      { name: "Xã Khánh Sơn", fullName: "Xã Khánh Sơn", type: "Xã", lat: 12.0125, lng: 108.9480 },
+      { name: "Xã Tây Khánh Sơn", fullName: "Xã Tây Khánh Sơn", type: "Xã", lat: 12.0450, lng: 108.8750 },
+      { name: "Xã Đông Khánh Sơn", fullName: "Xã Đông Khánh Sơn", type: "Xã", lat: 11.9880, lng: 109.0150 },
+      { name: "Xã Ninh Phước", fullName: "Xã Ninh Phước", type: "Xã", lat: 11.5180, lng: 108.9320 },
+      { name: "Xã Phước Hữu", fullName: "Xã Phước Hữu", type: "Xã", lat: 11.4850, lng: 108.8850 },
+      { name: "Xã Phước Hậu", fullName: "Xã Phước Hậu", type: "Xã", lat: 11.5350, lng: 108.9120 },
+      { name: "Xã Thuận Nam", fullName: "Xã Thuận Nam", type: "Xã", lat: 11.4250, lng: 108.8950 },
+      { name: "Xã Cà Ná", fullName: "Xã Cà Ná", type: "Xã", lat: 11.3420, lng: 108.8980 },
+      { name: "Xã Phước Hà", fullName: "Xã Phước Hà", type: "Xã", lat: 11.4480, lng: 108.7850 },
+      { name: "Xã Phước Dinh", fullName: "Xã Phước Dinh", type: "Xã", lat: 11.4520, lng: 108.9950 },
+      { name: "Xã Ninh Hải", fullName: "Xã Ninh Hải", type: "Xã", lat: 11.6150, lng: 109.0480 },
+      { name: "Xã Xuân Hải", fullName: "Xã Xuân Hải", type: "Xã", lat: 11.6350, lng: 108.9950 },
+      { name: "Xã Vĩnh Hải", fullName: "Xã Vĩnh Hải", type: "Xã", lat: 11.6980, lng: 109.1650 },
+      { name: "Xã Thuận Bắc", fullName: "Xã Thuận Bắc", type: "Xã", lat: 11.7120, lng: 109.0550 },
+      { name: "Xã Công Hải", fullName: "Xã Công Hải", type: "Xã", lat: 11.7750, lng: 109.0850 },
+      { name: "Xã Ninh Sơn", fullName: "Xã Ninh Sơn", type: "Xã", lat: 11.7150, lng: 108.8750 },
+      { name: "Xã Lâm Sơn", fullName: "Xã Lâm Sơn", type: "Xã", lat: 11.7950, lng: 108.7450 },
+      { name: "Xã Anh Dũng", fullName: "Xã Anh Dũng", type: "Xã", lat: 11.6350, lng: 108.7650 },
+      { name: "Xã Mỹ Sơn", fullName: "Xã Mỹ Sơn", type: "Xã", lat: 11.6750, lng: 108.8450 },
+      { name: "Xã Bác Ái Đông", fullName: "Xã Bác Ái Đông", type: "Xã", lat: 11.8350, lng: 108.9350 },
+      { name: "Xã Bác Ái", fullName: "Xã Bác Ái", type: "Xã", lat: 11.8650, lng: 108.8650 },
+      { name: "Xã Bác Ái Tây", fullName: "Xã Bác Ái Tây", type: "Xã", lat: 11.9150, lng: 108.7850 },
+
+      // --- 01 ĐẶC KHU ---
+      { name: "Đặc khu Trường Sa", fullName: "Đặc khu Trường Sa", type: "Đặc khu", lat: 8.6450, lng: 111.9190 }
+    ];
+
+    const labelMarkers = [];
+
     adminUnits65.forEach(unit => {
-      let color = "#38bdf8"; // Xã: Xanh dương
-      let size = 9;
-      if (unit.type === "Phường") { color = "#34d399"; size = 11; } // Phường: Xanh ngọc
-      if (unit.type === "Đặc khu") { color = "#fbbf24"; size = 14; } // Đặc khu: Vàng hổ phách
+      let bg = "#0284c7"; // Xã: Xanh dương
+      let labelClass = "gis-label gis-label-commune";
+      let size = 20;
+      let svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>`;
+
+      if (unit.type === "Phường") {
+        bg = "#059669"; // Phường: Xanh lá đậm
+        labelClass = "gis-label gis-label-ward";
+        size = 22;
+        svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg>`;
+      } else if (unit.type === "Đặc khu") {
+        bg = "#d97706"; // Đặc khu: Cam vàng nổi bật
+        labelClass = "gis-label gis-label-special";
+        size = 26;
+        svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+      }
 
       const icon = L.divIcon({
-        html: `<div style="background-color: ${color}; width: ${size}px; height: ${size}px; border: 1.5px solid #050914;" class="pulse-marker"></div>`,
-        className: '',
-        iconSize: [size, size],
-        iconAnchor: [size/2, size/2]
-      });
-
-      L.marker([unit.lat, unit.lng], { icon })
-        .addTo(map)
-        .bindTooltip(`<b>${unit.name}</b><br/><span style="color:${color}; font-size:11px;">Phân loại: ${unit.type} • Tỉnh Khánh Hòa</span>`);
-    });
-
-    // CHUYỂN ĐỔI XEM THỬ BẢN ĐỒ NỀN
-    let isPreviewing = false;
-    function togglePreviewMode() {
-      const overlay = document.getElementById('comingSoonOverlay');
-      const mapEl = document.getElementById('map');
-      const hud = document.getElementById('previewHud');
-
-      isPreviewing = !isPreviewing;
-      if (isPreviewing) {
-        overlay.classList.add('hidden');
-        mapEl.classList.remove('opacity-65');
-        mapEl.classList.add('opacity-100');
-        hud.classList.remove('hidden');
-      } else {
-        overlay.classList.remove('hidden');
-        mapEl.classList.add('opacity-65');
-        mapEl.classList.remove('opacity-100');
-        hud.classList.add('hidden');
-      }
-    }
-
-    function flyToMainland() {
-      map.flyTo([12.02, 109.12], 9, { duration: 1.2 });
-    }
-
-    function flyToTruongSa() {
-      map.flyTo([8.6450, 111.9190], 7, { duration: 1.5 });
-    }
-  </script>
-</body>
-</html>
+        html: `<div style="background-color: ${bg}; width: ${size}px; height: ${size}px;" class="custom-pin">${svgIcon}</div>`,
+        class
